@@ -1,4 +1,4 @@
-Suit of MATLAB files for analysis, parameter extraction and simulation of
+Suite of MATLAB files for analysis, parameter extraction and simulation of
 data of trapped particles.
 
 
