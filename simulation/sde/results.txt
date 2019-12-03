@@ -1,0 +1,23 @@
+
+#########################################################
+Starting calculations!
+
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+Calculating sample paths.
+Expected simulation time: 00:03:49
+
+Trace num. 1 out of 20 (5 %). Elapsed time: 00:00:11
+Trace num. 2 out of 20 (10 %). Elapsed time: 00:00:23
+Trace num. 3 out of 20 (15 %). Elapsed time: 00:00:35
+Trace num. 4 out of 20 (20 %). Elapsed time: 00:00:47
+Trace num. 5 out of 20 (25 %). Elapsed time: 00:00:59
+Trace num. 6 out of 20 (30 %). Elapsed time: 00:01:11
+Trace num. 7 out of 20 (35 %). Elapsed time: 00:01:22
+Trace num. 8 out of 20 (40 %). Elapsed time: 00:01:35
+Trace num. 9 out of 20 (45 %). Elapsed time: 00:01:47
+Trace num. 10 out of 20 (50 %). Elapsed time: 00:01:58
+Trace num. 11 out of 20 (55 %). Elapsed time: 00:02:10
+Trace num. 12 out of 20 (60 %). Elapsed time: 00:02:21
+Trace num. 13 out of 20 (65 %). Elapsed time: 00:02:32
+Trace num. 14 out of 20 (70 %). Elapsed time: 00:02:44
+Trace num. 15 out of 20 (75 %). Elapsed time: 00:02:55
