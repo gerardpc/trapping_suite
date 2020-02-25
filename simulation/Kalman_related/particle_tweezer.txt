@@ -1,0 +1,6 @@
+T 295 temperature
+k_B 1.38065e-23 Boltzmann_constant
+r 117.5e-9 radius_particle
+pressure 1 in_mbar
+density 2200 kg/m^3_for_silica
+freq 125e3 frequency_in_trap

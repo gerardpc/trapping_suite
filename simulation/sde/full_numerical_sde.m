@@ -47,10 +47,10 @@ switch(order)
 end
 
 % Load experiment parameters
-if(any(ismember(varargin, 'optical_tweezer')))
-    trap = load_opt_tweezer;
-elseif(any(ismember(varargin, 'paul_trap')))
+if(any(ismember(varargin, 'paul_trap')))
     trap = load_paul_trap;
+elseif(any(ismember(varargin, 'optical_tweezer')))
+    trap = load_opt_tweezer;
 end
 
 %% Solve numerically

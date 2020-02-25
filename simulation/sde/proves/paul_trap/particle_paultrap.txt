@@ -1,9 +1,0 @@
-T 295 temperature
-k_B 1.38065e-23 Boltzmann_constant
-r 100e-9 radius_particle
-Q 100 elementary_charges_particle
-pressure 1010 in_mbar
-density 2200 kg/m^3_for_silica
-freq 20000 frequency_driving
-V 750 voltage_trap
-d 1.4e-3 characteristic_distance_trap

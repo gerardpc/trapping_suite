@@ -110,13 +110,13 @@ B =  [0  0;...
 % LQR optimization matrices
 Q1 = [1 0;...
       0 0]; % we only care about x^2(t)
-Q2 = 1e-20*eye(2); % -> we don't care about expending more in u(t)
+Q2 = 1e-15*eye(2); % -> we don't care about expending more in u(t)
   
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Initial conditions
 % state vector 
-x(:, 1) = [6.9663e-09; 2.5248e-02]; %[normrnd(0, sqrt(k_B*trap.T/(trap.m*trap.w_0^2)));...
-           %normrnd(0, sqrt(k_B*trap.T/(trap.m)))]
+x(:, 1) = [normrnd(0, sqrt(k_B*trap.T/(trap.m*trap.w_0^2)));...
+           normrnd(0, sqrt(k_B*trap.T/(trap.m)))];
 % observed vector
 z(1) = x(1, 1) + sigma_obs*normrnd(0,1);
 % estimation (assume initially known, for now)
@@ -150,17 +150,14 @@ for n = 2:n_samples
     y = z(n) - H*x_kf_predict; % innovation
     S = R2 + H*P_predict*H'; % innovation covariance
     K = P_predict*H'/S; % Optimal Kalman gain
-    
-    correc = K*y;
-    position = correc(1)/x_kf_predict(1);
-    velocity = correc(2)/x_kf_predict(2);
+
     x_kf(:, n) = x_kf_predict + K*y; % update state estimate
     P = (eye(2) - K*H)*P_predict; % update estimate covariance
     y = z(n) - H*x_kf(:, n); % post-fit innovation
     
     %% LQR feedback (remember KF + LQR = LQQ)
     % Optimization criterion: Minimize J = \int_0^\infty x'*Q1*x + u'*Q2*u dt.
-    % In this case, Q2 = 0 (we don't care about using a lot of energy in u(t)).
+    % In this case, Q2 \approx 0 (we don't care about using a lot of energy in u(t)).
     
     % Solution of Ricatti equation, A'SA - S - A'SB(B'SB + Q2)^(-1)B'SA + Q1 = 0,
     % where S is the unknown, A, B from the state space equations, Q1, Q2
@@ -170,14 +167,10 @@ for n = 2:n_samples
     L = (B'*S*B + Q2)\B'*S*A;
     % L
     % Control input
-    if(n>1200)                                           %if(feedback)
-        %L = L.*[0 0; 0 1];
-        %-L*x_kf(:, n)
-        u(:, n) = [0; -L(2, 1)*x_kf(1, n) - L(2, 2)*x_kf(2, n)]; % -L*x_kf(:, n); 
-        %L(2, 1)*x_kf(1, n)/(L(2, 2)*x_kf(2, n))
+    if(feedback)
+        u(:, n) = -L*x_kf(:, n); 
         % add Red pitaya discretization
         u(:, n) = rp_resolution(u(:, n)/v_to_el)*v_to_el;
-        %color_plot = '[0.8 0.8 0.1]';
         color_plot = '[0.2 0.8 0.1]';
     else
         u(:, n) = [0; 0];
@@ -190,12 +183,10 @@ for n = 2:n_samples
         x2_energy_phonons(n) = x2_energy(n)/(h_bar*trap.w_0) - 0.5; % energy (n)
         x2_energy_phonons_real(n) = 1/t_energy*sum(x_kf(1, n - n_energy : n).^2)*dt*trap.m*trap.w_0^2/(h_bar*trap.w_0) - 0.5; % energy (n)
     end
-    n
     %% Plot the results in real time (like an oscilloscope)
-    if n == 4000 %3 == mod(n, 100)
+    if 3 == mod(n, 100)
         % Plot signal
-        h = figure(3);
-        %axes(signal_handle);
+        axes(signal_handle);
         %cla reset;
         t_min = max(0, t(n) - num_T_oscilloscope*0.666*T_period);
         t_max =  max(num_T_oscilloscope*T_period, t(n) + num_T_oscilloscope*0.333*T_period);
@@ -205,49 +196,48 @@ for n = 2:n_samples
         nice_plot(t(t_ini:n), x_kf(1, t_ini:n), 'time (s)', '$x(t)$', 'KF simulation over opt. tweezer trajectory', 'linewidth', '3', 'color', color_plot);
         %nice_plot(t(t_ini:n), x_kf(2, t_ini:n)/(2*pi*125000), 'time (s)', '$x(t)$', 'KF simulation over opt. tweezer trajectory', 'linewidth', '3', 'color', '[0.8 0.4 0.1]');
         xlim([t_min, t(n)]);
-        %xlim([t_min, t_max]);
 
-%         % Plot voltage used for feedback
-%         axes(voltage_handle);
-%         cla reset;
-%         % divided by v_to_el to get from electric field to Volts
-%         nice_plot(t(t_ini:n), u(2, t_ini:n)/v_to_el, 'time (s)', '$V(t)$', 'Feedback voltage', 'linewidth', '3', 'color', '[0 0.6 1]');        
-%         xlim([t_min, t_max]);
-% 
-%         % Plot also energy if enough (> n_energy) samples
-%         if(n > n_energy)
-%             % Plot energy in Kelvin
-%             axes(energy_handle);
-%             cla reset;
-%             nice_plot(t(t_ini:n), x2_energy_T(t_ini:n), 'time (s)', 'Temp. (K)', 'Energy', 'color', 'r', 'linewidth', '2');
-%             xlim([t_min, t_max]);
-%             % Plot energy in number of estimated phonons
-%             axes(phonons_handle);
-%             cla reset;
-%             nice_plot(t(t_ini:n), x2_energy_phonons(t_ini:n), 'time (s)', '$\langle n \rangle$', 'Phonons', 'color', 'b', 'linewidth', '2');
-%             xlim([t_min, t_max]);
-%             % Plot energy in number of real phonons
-%             axes(phonons_real_handle);
-%             cla reset;
-%             nice_plot(t(t_ini:n), x2_energy_phonons_real(t_ini:n), 'time (s)', '$\langle n \rangle$', 'Est. phonons', 'color', '[0.6 0 1]', 'linewidth', '2');
-%             xlim([t_min, t_max]);
-%         else
-%             % Plot energy in Kelvin
-%             axes(energy_handle);
-%             cla reset;
-%             nice_plot(t(t_ini:n), zeros(1, length(t(t_ini:n))), 'time (s)', 'Temp. (K)', 'Energy', 'color', 'r', 'linewidth', '2');
-%             xlim([t_min, t_max]);
-%             % Plot energy in number of estimated phonons
-%             axes(phonons_handle);
-%             cla reset;
-%             nice_plot(t(t_ini:n), zeros(1, length(t(t_ini:n))), 'time (s)', '$\langle n \rangle$', 'Phonons', 'color', 'b', 'linewidth', '2');
-%             xlim([t_min, t_max]);
-%             % Plot energy in number of real phonons
-%             axes(phonons_real_handle);
-%             cla reset;
-%             nice_plot(t(t_ini:n), zeros(1, length(t(t_ini:n))), 'time (s)', '$\langle n \rangle$', 'Est. phonons', 'color', '[0.6 0 1]', 'linewidth', '2');
-%             xlim([t_min, t_max]);
-%         end
+        % Plot voltage used for feedback
+        axes(voltage_handle);
+        cla reset;
+        % divided by v_to_el to get from electric field to Volts
+        nice_plot(t(t_ini:n), u(2, t_ini:n)/v_to_el, 'time (s)', '$V(t)$', 'Feedback voltage', 'linewidth', '3', 'color', '[0 0.6 1]');        
+        xlim([t_min, t_max]);
+
+        % Plot also energy if enough (> n_energy) samples
+        if(n > n_energy)
+            % Plot energy in Kelvin
+            axes(energy_handle);
+            cla reset;
+            nice_plot(t(t_ini:n), x2_energy_T(t_ini:n), 'time (s)', 'Temp. (K)', 'Energy', 'color', 'r', 'linewidth', '2');
+            xlim([t_min, t_max]);
+            % Plot energy in number of estimated phonons
+            axes(phonons_handle);
+            cla reset;
+            nice_plot(t(t_ini:n), x2_energy_phonons(t_ini:n), 'time (s)', '$\langle n \rangle$', 'Phonons', 'color', 'b', 'linewidth', '2');
+            xlim([t_min, t_max]);
+            % Plot energy in number of real phonons
+            axes(phonons_real_handle);
+            cla reset;
+            nice_plot(t(t_ini:n), x2_energy_phonons_real(t_ini:n), 'time (s)', '$\langle n \rangle$', 'Est. phonons', 'color', '[0.6 0 1]', 'linewidth', '2');
+            xlim([t_min, t_max]);
+        else
+            % Plot energy in Kelvin
+            axes(energy_handle);
+            cla reset;
+            nice_plot(t(t_ini:n), zeros(1, length(t(t_ini:n))), 'time (s)', 'Temp. (K)', 'Energy', 'color', 'r', 'linewidth', '2');
+            xlim([t_min, t_max]);
+            % Plot energy in number of estimated phonons
+            axes(phonons_handle);
+            cla reset;
+            nice_plot(t(t_ini:n), zeros(1, length(t(t_ini:n))), 'time (s)', '$\langle n \rangle$', 'Phonons', 'color', 'b', 'linewidth', '2');
+            xlim([t_min, t_max]);
+            % Plot energy in number of real phonons
+            axes(phonons_real_handle);
+            cla reset;
+            nice_plot(t(t_ini:n), zeros(1, length(t(t_ini:n))), 'time (s)', '$\langle n \rangle$', 'Est. phonons', 'color', '[0.6 0 1]', 'linewidth', '2');
+            xlim([t_min, t_max]);
+        end
         pause(0.0001);
     end
     %% End executation if button pressed

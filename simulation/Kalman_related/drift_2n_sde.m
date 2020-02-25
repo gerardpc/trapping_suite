@@ -1,14 +1,28 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% This serves as a 2nd order function for a numerical method for ODEs
+% This serves as a 2nd order function for a numerical method for SDEs
 % 1st function: x' = f(1)
 % 2nd function: v' = f(2) 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function[f] = test_2nd_order(t, y)
-%% use 'understandable' names (DON'T CHANGE THIS SECTION)
+
+function[f] = drift_2n_sde(t, y, varargin)
+% use 'understandable' names
 x = y(1);
 v = y(2);
 
+% calculate function
 f(1) = v; 
+
+% % Definitions: experimental parameters (like in pdf)
+% trap = varargin{1};
+% 
+% % % Paul trap
+% % f(2) = 1/trap.m*(-trap.gamma*v + trap.eps*cos(trap.w_0*t)*x);
+% 
+% % parameters opt. tweezer
+% global xi;
+% xi = 0;
+% 
+% f(2) = -1/trap.m*(trap.gamma*v + trap.m*trap.w_0^2*(1 + xi*x^2)*x); % + f_0*cos(2*pi*f_dr*t));
 
 % Gaussian beam
 %% parameters
@@ -26,7 +40,7 @@ a = 136/2*unit; % particle radius
 [m_particle, ~] = mass_particle(a, 0, 'm', 'silica', 'kg'); % particle mass
 % numerical 
 h = 1e-5*a; % discretization size
-c_factor = 1.5; % correction factor for high NA in Gaussian beam (set to "1" to eliminate correction)ï¿½
+c_factor = 1.5; % correction factor for high NA in Gaussian beam (set to "1" to eliminate correction)¨
 
 % Gaussian beam and EM parameters definitions
 w_0 = lambda/(pi*NA)*c_factor;
@@ -54,7 +68,5 @@ F_exact_r = @(r, z, alpha) 1/2*alpha*grad_E2_r(r,z);
 F_exact_z = @(r, z, alpha) 1/2*alpha*grad_E2_z(r,z);
 f(2) = F_exact_r(x, 0, alpha_bulk)/m_particle;
 
-
-%% good output format
 f = f';
 end
